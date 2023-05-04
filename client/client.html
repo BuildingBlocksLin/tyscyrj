@@ -19,64 +19,52 @@
 		<div id="app">
 			<el-container>
 				<el-aside width="260px">
-					<el-input type="textarea" v-model="配方计算" autosize></el-input>
+					<el-input type="textarea" v-model="配方计算" autosize disabled></el-input>
 				</el-aside>
-				<el-main>
-					<el-container>
-						<el-main>
-							<el-checkbox-group v-model="选中的产物" @change="计算订单收益">
-								<el-row v-for="工坊 in 所有产物" :key="工坊">
-									<el-checkbox-button v-for="产物 in 工坊[1]" :key="产物" :label="产物">
+				<el-main style="padding-top: 0px;padding-right: 0px;padding-bottom: 0px;">
+					<el-checkbox-group v-model="选中的产物" @change="计算订单收益">
+						<div v-for="工坊 in 所有产物" :key="工坊" style="margin-top: 4px;">
+							<el-row>
+								<el-col style="width: 80px;max-width: 80px;">
+									<el-text style="font-size: 14px;line-height: 32px;">{{ 工坊[0] }} - </el-text>
+								</el-col>
+								<el-col :span="22">
+									<el-checkbox-button v-for="产物 in 工坊[1]" :key="产物" :label="产物"
+										:style="{boxShadow: 是否是最终产物(产物) ? '0px 5px 3px -3px var(--el-color-danger)':''}">
 										{{ 产物 }} - {{ 计算产物时间(产物).toFixed(2) }}
 									</el-checkbox-button>
-								</el-row>
-							</el-checkbox-group>
-							<el-row>
-								<!-- <el-input v-model="铜钱和经验" placeholder="输入铜钱和经验，用空格隔开" @change="计算订单收益" />
-								<el-text>{{ 订单板 }}</el-text> -->
-								<el-col :span="4">
-									<el-text>铜钱：</el-text>
-									<el-input-number v-model="铜钱" :step="10" step-strictly @change="计算订单收益" />
-								</el-col>
-								<el-col :span="4">
-									<el-text>经验：</el-text>
-									<el-input-number v-model="经验" :step="10" step-strictly @change="计算订单收益" />
-								</el-col>
-								<el-col :span="16">
-									<el-text>{{ 订单板 }}</el-text>
 								</el-col>
 							</el-row>
-						</el-main>
-						<!-- <el-main>Main</el-main> -->
-					</el-container>
+						</div>
+					</el-checkbox-group>
+					<el-row style="margin-top: 6px;">
+						<el-col :span="1">
+							<el-button size="small" @click="选中的产物=[];计算订单收益()">清空</el-button>
+						</el-col>
+						<el-col :span="4">
+							<el-text>铜钱：</el-text>
+							<el-input-number v-model="铜钱" :step="10" step-strictly @change="计算订单收益"
+								controls-position="right" size="small" />
+						</el-col>
+						<el-col :span="4">
+							<el-text>经验：</el-text>
+							<el-input-number v-model="经验" :step="10" step-strictly @change="计算订单收益"
+								controls-position="right" size="small" />
+						</el-col>
+						<el-col :span="16">
+							<el-text>{{ 订单板 }}</el-text>
+						</el-col>
+					</el-row>
+					<el-row v-if="生产作用 && 烹饪作用" style="margin-top: 6px;">
+						<el-col :span="12">
+							<el-input type="textarea" v-model="生产作用" autosize disabled></el-input>
+						</el-col>
+						<el-col :span="12">
+							<el-input type="textarea" v-model="烹饪作用" autosize disabled></el-input>
+						</el-col>
+					</el-row>
 				</el-main>
 			</el-container>
-			<!-- <el-row :gutter="15">
-				<el-col :span="5">
-					<el-input type="textarea" v-model="配方计算" autosize></el-input>
-				</el-col>
-				<el-col :span="4">
-					<el-input type="textarea" v-model="计算值" autosize></el-input>
-				</el-col>
-				<el-col :span="19">
-					<el-row>
-						<el-checkbox-group v-model="选中的产物" @change="计算订单收益">
-							<el-row v-for="工坊 in 所有产物" :key="工坊">
-								<el-text>{{ 工坊[0] }}</el-text>
-								<el-checkbox-button v-for="产物 in 工坊[1]" :key="产物" :label="产物">
-									{{ 产物 }} - {{ 计算产物时间(产物).toFixed(2) }}
-								</el-checkbox-button>
-							</el-row>
-						</el-checkbox-group>
-					</el-row>
-					<el-row>
-						<el-input v-model="铜钱和经验" placeholder="输入铜钱和经验，用空格隔开" @change="计算订单收益" />
-					</el-row>
-					<el-row>
-						<el-text>{{ 订单板 }}</el-text>
-					</el-row>
-				</el-col>
-			</el-row> -->
 		</div>
 
 		<script>
@@ -85,16 +73,16 @@
 					data() {
 						return {
 							配方: 配方,
+							烹饪: 烹饪,
 							配方计算: undefined,
-							计算值: undefined,
-							// 所有产物: Object.keys(配方).map(工坊名 => Object.keys(配方[工坊名])).reduce((p, c) => p.concat(c))
-							// 	.filter(产物名 => 产物名 != '时间加成'),
 							所有产物: Object.keys(配方).map(工坊名 => [工坊名, Object.keys(配方[工坊名]).filter(产物名 => 产物名 !=
 								'时间加成')]),
 							选中的产物: [],
 							铜钱: 0,
 							经验: 0,
-							订单板: ''
+							订单板: '',
+							生产作用: '',
+							烹饪作用: ''
 						}
 					},
 					methods: {
@@ -103,7 +91,7 @@
 							Object.keys(this.配方).forEach(工坊名 => {
 								this.配方计算 += `${工坊名}（时间加成：${this.配方[工坊名]['时间加成']}）:\n`
 								Object.keys(this.配方[工坊名]).forEach(产物名 => {
-									if (产物名 != '时间加成' && 产物名 != '等级') {
+									if (产物名 != '时间加成') {
 										let 时间 = this.配方[工坊名][产物名]['时间']
 										时间 = 时间 * (100 + (this.配方[工坊名]['时间加成'] || 0)) / 100
 										this.配方计算 += `\t${产物名}: \t${this.时间转换(时间)}\n`
@@ -111,17 +99,6 @@
 								})
 							})
 							this.配方计算 = this.配方计算.substr(0, this.配方计算.length - 1)
-
-							this.计算值 = '产物总耗时\n'
-							Object.keys(this.配方).forEach(工坊名 => {
-								this.计算值 += `${工坊名}（时间加成：${this.配方[工坊名]['时间加成']}）:\n`
-								Object.keys(this.配方[工坊名]).forEach(产物名 => {
-									if (产物名 != '时间加成' && 产物名 != '等级')
-										this.计算值 +=
-										`\t${产物名}: \t${this.时间转换(this.计算产物时间(产物名))}\n`
-								})
-							})
-							this.计算值 = this.计算值.substr(0, this.计算值.length - 1)
 						},
 						计算产物时间(产物名) {
 							const 同时工坊 = ['农田', '鸡舍', '羊圈']
@@ -163,6 +140,52 @@
 							} else {
 								this.订单板 = `耗时：${time.toFixed(0)}分钟，期望收益：${期望收益} - ${期望收益值}`
 							}
+							if (this.选中的产物.length == 1) {
+								this.展示产物的作用(this.选中的产物[0])
+							} else {
+								this.生产作用 = ''
+								this.烹饪作用 = ''
+							}
+						},
+						展示产物的作用(产物) {
+							this.生产作用 = '用于生产：\n'
+							Object.keys(this.配方).forEach(工坊名 => {
+								Object.keys(this.配方[工坊名]).forEach(产物名 => {
+									if (产物名 != '时间加成' && this.配方[工坊名][产物名][产物]) {
+										this.生产作用 += `[ ${工坊名}-${产物名} ]：`
+										Object.keys(this.配方[工坊名][产物名]).filter(v => v != '时间')
+											.forEach((材料, i) => {
+												this.生产作用 +=
+													`${i==0?'':' +'} ${材料} * ${this.配方[工坊名][产物名][材料]}`
+											})
+										this.生产作用 += '\n'
+									}
+								})
+							})
+							this.生产作用 = this.生产作用.substr(0, this.生产作用.length - 1)
+
+							this.烹饪作用 = '用于烹饪：\n'
+							Object.keys(this.烹饪).forEach(菜名 => {
+								if (this.烹饪[菜名][产物]) {
+									this.烹饪作用 += `[ ${菜名} ]：`
+									Object.keys(this.烹饪[菜名]).forEach((材料, i) => {
+										this.烹饪作用 +=
+											`${i==0?'':' +'} ${材料} * ${this.烹饪[菜名][材料]}`
+									})
+									this.烹饪作用 += '\n'
+								}
+							})
+							this.烹饪作用 = this.烹饪作用.substr(0, this.烹饪作用.length - 1)
+						},
+						是否是最终产物(产物) {
+							if (Object.keys(this.配方).some(工坊名 => Object.keys(this.配方[工坊名]).some(产物名 =>
+									产物名 != '时间加成' && this.配方[工坊名][产物名][产物]))) {
+								return false
+							}
+							if (Object.keys(this.烹饪).some(菜名 => this.烹饪[菜名][产物])) {
+								return false
+							}
+							return true
 						},
 						时间转换(分) {
 							const 秒 = 分 * 60
