@@ -1,0 +1,19 @@
+{
+  "workshops": [
+    {
+      "name": "农田",
+      "reduceTime": 3,
+      "doubleProb": 0,
+      "product": [
+        {
+          "name": "小麦",
+          "time": 2
+        },
+        {
+          "name": "大豆",
+          "time": 5
+        }
+      ]
+    }
+  ]
+}
