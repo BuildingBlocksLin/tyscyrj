@@ -65,6 +65,18 @@
 					</el-row>
 				</el-main>
 			</el-container>
+			<!-- <el-dialog v-model="展示设置面板" title="Shipping address">
+				<el-table :data="gridData">
+					<el-table-column property="date" label="Date" width="150" />
+					<el-table-column property="name" label="Name" width="200" />
+					<el-table-column property="address" label="Address" />
+				</el-table>
+			</el-dialog> -->
+			<el-drawer v-model="展示设置面板" title="I am the title" :with-header="false">
+				<span>Hi there!</span>
+			</el-drawer>
+			<el-button :style="{ position: 'fixed', bottom: 设置按钮['下'] + 'px', right: 设置按钮['右'] + 'px' }"
+				@mousedown="dragStart" @click="展示设置面板 = true">这是一个放在哪里都挡位置所以一定要可以拖动的平平无奇的设置按钮</el-button>
 		</div>
 
 		<script>
@@ -82,7 +94,15 @@
 							经验: 0,
 							订单板: '',
 							生产作用: '',
-							烹饪作用: ''
+							烹饪作用: '',
+							设置按钮: {
+								下: 10,
+								右: 10,
+								正在拖动: false,
+								鼠标按下X: 0,
+								鼠标按下Y: 0
+							},
+							展示设置面板: false
 						}
 					},
 					methods: {
@@ -197,8 +217,26 @@
 							} else {
 								return `${分显示}分${秒显示}秒`
 							}
+						},
+						dragStart(event) {
+							this.设置按钮.正在拖动 = true
+							this.设置按钮.鼠标按下X = event.clientX
+							this.设置按钮.鼠标按下Y = event.clientY
 						}
 					},
+					created() {
+						document.addEventListener('mousemove', (event) => {
+							if (this.设置按钮.正在拖动) {
+								this.设置按钮.下 -= event.clientY - this.设置按钮.鼠标按下Y
+								this.设置按钮.右 -= event.clientX - this.设置按钮.鼠标按下X
+								this.设置按钮.鼠标按下X = event.clientX
+								this.设置按钮.鼠标按下Y = event.clientY
+							}
+						})
+						document.addEventListener('mouseup', (event) => {
+							this.设置按钮.正在拖动 = false
+						})
+					}
 				})
 				app.use(ElementPlus)
 				const vm = app.mount('#app')
