@@ -13,6 +13,7 @@
 		<!-- Custom -->
 		<script src="script/配方.js" type="text/javascript"></script>
 		<script src="script/烹饪.js" type="text/javascript"></script>
+		<script src="script/拼音.js" type="text/javascript"></script>
 	</head>
 
 	<body>
@@ -23,14 +24,27 @@
 				</el-aside>
 				<el-main style="padding-top: 0px;padding-right: 0px;padding-bottom: 0px;">
 					<el-checkbox-group v-model="选中的产物" @change="计算订单收益">
-						<div v-for="工坊 in 所有产物" :key="工坊" style="margin-top: 4px;">
+						<div v-if="!首字母分类" v-for="工坊 in 所有产物" :key="工坊" style="margin-top: 4px;">
 							<el-row>
 								<el-col style="width: 80px;max-width: 80px;">
 									<el-text style="font-size: 14px;line-height: 32px;">{{ 工坊[0] }} - </el-text>
 								</el-col>
 								<el-col :span="22">
 									<el-checkbox-button v-for="产物 in 工坊[1]" :key="产物" :label="产物"
-										:style="{boxShadow: 是否是最终产物(产物) ? '0px 5px 3px -3px var(--el-color-danger)':''}">
+										:style="{boxShadow: 标记最终产物&&是否是最终产物(产物) ? '0px 5px 3px -3px var(--el-color-danger)':''}">
+										{{ 产物 }} - {{ 计算产物时间(产物).toFixed(2) }}
+									</el-checkbox-button>
+								</el-col>
+							</el-row>
+						</div>
+						<div v-if="首字母分类" v-for="工坊 in 所有产物拼音分类" :key="工坊" style="margin-top: 4px;">
+							<el-row>
+								<el-col style="width: 80px;max-width: 80px;">
+									<el-text style="font-size: 14px;line-height: 32px;">{{ 工坊[0] }} - </el-text>
+								</el-col>
+								<el-col :span="22">
+									<el-checkbox-button v-for="产物 in 工坊[1]" :key="产物" :label="产物"
+										:style="{boxShadow: 标记最终产物&&是否是最终产物(产物) ? '0px 5px 3px -3px var(--el-color-danger)':''}">
 										{{ 产物 }} - {{ 计算产物时间(产物).toFixed(2) }}
 									</el-checkbox-button>
 								</el-col>
@@ -39,17 +53,17 @@
 					</el-checkbox-group>
 					<el-row style="margin-top: 6px;">
 						<el-col :span="1">
-							<el-button size="small" @click="选中的产物=[];计算订单收益()">清空</el-button>
+							<el-button @click="选中的产物=[];计算订单收益()">清空</el-button>
 						</el-col>
 						<el-col :span="4">
 							<el-text>铜钱：</el-text>
 							<el-input-number v-model="铜钱" :step="10" step-strictly @change="计算订单收益"
-								controls-position="right" size="small" />
+								controls-position="right" />
 						</el-col>
 						<el-col :span="4">
 							<el-text>经验：</el-text>
 							<el-input-number v-model="经验" :step="10" step-strictly @change="计算订单收益"
-								controls-position="right" size="small" />
+								controls-position="right" />
 						</el-col>
 						<el-col :span="16">
 							<el-text>{{ 订单板 }}</el-text>
@@ -65,18 +79,41 @@
 					</el-row>
 				</el-main>
 			</el-container>
-			<!-- <el-dialog v-model="展示设置面板" title="Shipping address">
-				<el-table :data="gridData">
-					<el-table-column property="date" label="Date" width="150" />
-					<el-table-column property="name" label="Name" width="200" />
-					<el-table-column property="address" label="Address" />
-				</el-table>
-			</el-dialog> -->
-			<el-drawer v-model="展示设置面板" title="I am the title" :with-header="false">
-				<span>Hi there!</span>
-			</el-drawer>
+			<el-dialog v-model="展示设置面板" title="设置">
+				<el-row>
+					<el-switch v-model="首字母分类" active-text="首字母分类" inactive-text="工坊分类" @change="配置改变"
+						style="--el-switch-on-color: #13ce66; --el-switch-off-color: #55aaff" />
+				</el-row>
+				<el-row>
+					<el-switch v-model="标记最终产物" active-text="标记最终产物" inactive-text="不标记最终产物" @change="配置改变"
+						style="--el-switch-on-color: #13ce66; --el-switch-off-color: #55aaff" />
+				</el-row>
+				<el-row>
+					<el-switch v-model="计算时间加成" active-text="计算时间加成" inactive-text="不计算时间加成" @change="配置改变"
+						style="--el-switch-on-color: #13ce66; --el-switch-off-color: #55aaff" />
+				</el-row>
+				<el-row v-if="计算时间加成">
+					<el-scrollbar height="400px">
+						<div v-for="工坊 in 所有产物" :key="工坊" style="margin-top: 4px;">
+							<el-row>
+								<el-col style="width: 80px;max-width: 80px;">
+									<el-text style="font-size: 14px;line-height: 32px;">{{ 工坊[0] }} - </el-text>
+								</el-col>
+								<el-col style="width: 300px;max-width: 300px;">
+									<el-input-number v-model="配方[工坊[0]]['时间加成']" :step="1" step-strictly
+										@change="配置改变" />
+								</el-col>
+							</el-row>
+						</div>
+					</el-scrollbar>
+				</el-row>
+				<el-row style="margin-top: 5px;">
+					<el-text>期望收益：</el-text>
+					<el-input-number v-model="期望收益" :step=".1" step-strictly controls-position="right" @change="配置改变" />
+				</el-row>
+			</el-dialog>
 			<el-button :style="{ position: 'fixed', bottom: 设置按钮['下'] + 'px', right: 设置按钮['右'] + 'px' }"
-				@mousedown="dragStart" @click="展示设置面板 = true">这是一个放在哪里都挡位置所以一定要可以拖动的平平无奇的设置按钮</el-button>
+				@mousedown="dragStart" @click="展示设置面板 = true">这是一个不管放在哪里都挡位置所以一定要可以拖动的平平无奇的设置按钮</el-button>
 		</div>
 
 		<script>
@@ -87,8 +124,8 @@
 							配方: 配方,
 							烹饪: 烹饪,
 							配方计算: undefined,
-							所有产物: Object.keys(配方).map(工坊名 => [工坊名, Object.keys(配方[工坊名]).filter(产物名 => 产物名 !=
-								'时间加成')]),
+							所有产物: undefined,
+							所有产物拼音分类: undefined,
 							选中的产物: [],
 							铜钱: 0,
 							经验: 0,
@@ -102,23 +139,46 @@
 								鼠标按下X: 0,
 								鼠标按下Y: 0
 							},
-							展示设置面板: false
+							展示设置面板: false,
+							首字母分类: false,
+							标记最终产物: false,
+							期望收益: 1,
+							计算时间加成: false
 						}
 					},
 					methods: {
 						计算() {
 							this.配方计算 = '单个产物耗时\n'
 							Object.keys(this.配方).forEach(工坊名 => {
-								this.配方计算 += `${工坊名}（时间加成：${this.配方[工坊名]['时间加成']}）:\n`
+								this.配方计算 += `${工坊名}（时间加成：${this.计算时间加成?this.配方[工坊名]['时间加成']:0}）:\n`
 								Object.keys(this.配方[工坊名]).forEach(产物名 => {
 									if (产物名 != '时间加成') {
 										let 时间 = this.配方[工坊名][产物名]['时间']
-										时间 = 时间 * (100 + (this.配方[工坊名]['时间加成'] || 0)) / 100
+										时间 = 时间 * (100 + (this.计算时间加成 ? this.配方[工坊名]['时间加成'] :
+											0 || 0)) / 100
 										this.配方计算 += `\t${产物名}: \t${this.时间转换(时间)}\n`
 									}
 								})
 							})
 							this.配方计算 = this.配方计算.substr(0, this.配方计算.length - 1)
+
+							this.所有产物 = Object.keys(配方).map(工坊名 => [工坊名, Object.keys(配方[工坊名]).filter(产物名 =>
+								产物名 != '时间加成')])
+
+							let 所有 = Object.values(this.配方).map(工坊 => Object.keys(工坊).filter(产物名 => 产物名 !=
+									'时间加成'))
+								.reduce((p, c) => p.concat(c), []).map(产物名 => [产物名, ['陶艺木具', '陶土', '陶器', '单色瓷']
+									.includes(产物名) ? makePy(产物名)[1][0] : makePy(产物名)[0][0]
+								])
+							let 分类 = {}
+							所有.forEach(arr => {
+								if (!分类[arr[1]]) {
+									分类[arr[1]] = []
+								}
+								分类[arr[1]].push(arr[0])
+							})
+							this.所有产物拼音分类 = Object.keys(分类).map(首字母 => [首字母, 分类[首字母]]).sort((a, b) => a[0]
+								.localeCompare(b[0]))
 						},
 						计算产物时间(产物名) {
 							const 同时工坊 = ['农田', '鸡舍', '羊圈']
@@ -129,7 +189,8 @@
 									let 总时间 = 0
 									Object.keys(产物配方).forEach(材料 => {
 										if (材料 == '时间') {
-											总时间 += 产物配方[材料] * (100 + (工坊S[i]['时间加成'] || 0)) / 100
+											总时间 += 产物配方[材料] * (100 + (this.计算时间加成 ? 工坊S[i]['时间加成'] : 0 ||
+												0)) / 100
 										} else {
 											if (同时工坊.some(工坊名 => this.配方[工坊名][材料])) {
 												// 总时间 += this.计算产物时间(材料)
@@ -145,8 +206,7 @@
 						},
 						计算订单收益() {
 							let time = this.选中的产物.reduce((p, c) => p + this.计算产物时间(c), 0)
-							let 期望收益 = 1.6
-							let 期望收益值 = time * 期望收益
+							let 期望收益值 = time * this.期望收益
 							期望收益值 = 期望收益值.toFixed(2)
 							if (this.铜钱 && this.经验) {
 								let 铜钱收益 = this.铜钱 / time
@@ -156,9 +216,9 @@
 								let 综合收益 = Number(铜钱收益) + Number(经验收益)
 								综合收益 = 综合收益.toFixed(2)
 								this.订单板 =
-									`耗时：${time.toFixed(0)}分钟，铜钱收益：${铜钱收益}，经验收益：${经验收益}，综合收益：${综合收益}，期望收益：${期望收益} - ${期望收益值}`
+									`耗时：${time.toFixed(0)}分钟，铜钱收益：${铜钱收益}，经验收益：${经验收益}，综合收益：${综合收益}，期望收益：${this.期望收益} - ${期望收益值}`
 							} else {
-								this.订单板 = `耗时：${time.toFixed(0)}分钟，期望收益：${期望收益} - ${期望收益值}`
+								this.订单板 = `耗时：${time.toFixed(0)}分钟，期望收益：${this.期望收益} - ${期望收益值}`
 							}
 							if (this.选中的产物.length == 1) {
 								this.展示产物的作用(this.选中的产物[0])
@@ -218,6 +278,17 @@
 								return `${分显示}分${秒显示}秒`
 							}
 						},
+						配置改变() {
+							let 配置 = {
+								"首字母分类": this.首字母分类,
+								"标记最终产物": this.标记最终产物,
+								"计算时间加成": this.计算时间加成,
+								"期望收益": this.期望收益,
+								"时间加成": Object.keys(this.配方).map(工坊名 => [工坊名, this.配方[工坊名]['时间加成'] || 0])
+							}
+							localStorage.setItem('配置', JSON.stringify(配置))
+							this.计算()
+						},
 						dragStart(event) {
 							this.设置按钮.正在拖动 = true
 							this.设置按钮.鼠标按下X = event.clientX
@@ -236,6 +307,17 @@
 						document.addEventListener('mouseup', (event) => {
 							this.设置按钮.正在拖动 = false
 						})
+						let 配置 = localStorage.getItem('配置')
+						if (配置) {
+							配置 = JSON.parse(配置)
+							this.首字母分类 = 配置['首字母分类']
+							this.标记最终产物 = 配置['标记最终产物']
+							this.计算时间加成 = 配置['计算时间加成']
+							this.期望收益 = 配置['期望收益']
+							配置['时间加成'].forEach(item => {
+								this.配方[item[0]]['时间加成'] = item[1]
+							})
+						}
 					}
 				})
 				app.use(ElementPlus)
